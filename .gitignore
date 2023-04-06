@@ -1,0 +1,7 @@
+# ---> xbfs
+.DS_Store
+.vscode
+*.img
+*.bin
+*.raw
+
