@@ -5,12 +5,10 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
 #include <inttypes.h>
 #include <ctype.h>
 #include "sha256.h"
 #include "xbfs.h"
-#include "utils.h"
 
 char *xbfs_filenames[] = {
             "1smcbl_a.bin", // 0
@@ -52,6 +50,8 @@ char *xbfs_filenames[] = {
 uint8_t xbfs_magic[] = {
 	'S', 'F', 'B', 'X'
 };
+
+uint32_t xbfs_offset;
 
 static uint8_t read_buf[4096];
 
@@ -274,10 +274,11 @@ int xbfs_info(XBFS_Header *xbfs_header, FILE *fin, args_t *opts, int save) {
 	mk_string(buf, xbfs_header->sha, 32, 1);
 	printf("%17s: %s\n", "SHA256", buf);
 
-	// create output dir
-	struct stat st = {0};
-	if (stat(opts->e_val, &st) == -1) {
-    	mkdir(opts->e_val, 0700);
+	if(save) { 		// create output dir
+		struct stat st = {0};
+		if (stat(opts->e_val, &st) == -1) {
+			mkdir(opts->e_val, 0700);
+		}
 	}
 		
 	printf(" === XFBS Files ===\n");	

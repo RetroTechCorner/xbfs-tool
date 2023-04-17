@@ -20,7 +20,7 @@
 extern char *xbfs_filenames[];
 extern uint8_t xbfs_magic[];
 
-uint32_t xbfs_offset;
+extern uint32_t xbfs_offset;
 
 typedef struct {
 	uint32_t	offset;

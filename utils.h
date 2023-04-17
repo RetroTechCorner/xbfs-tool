@@ -2,7 +2,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 #include <sys/types.h>
-
+#include <unistd.h>
 
 typedef struct {
 	int i;		// info
