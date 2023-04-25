@@ -53,6 +53,11 @@ uint8_t xbfs_magic[] = {
 
 uint32_t xbfs_offset;
 
+// boot loaders have their own file system...?
+uint8_t bmfs_magic[] = {
+	'B', 'M', 'F', 'S'
+};
+
 static uint8_t read_buf[4096];
 
 
@@ -265,6 +270,25 @@ int xbfs_info(XBFS_Header *xbfs_header, FILE *fin, args_t *opts, int save) {
 
 	printf("%17s: %04X\n", "Layout Version", xbfs_header->layout_version);
 
+	// check for presence of "backup" boot.bin
+	fseek(fin, BOOT_BAK_OFFSET, SEEK_SET);
+	while(1) {
+		fread(buf, 0x4, 1, fin);
+		break;
+	}
+	int bmfs_magic_nok = 0;
+	// check magic
+	for(int i=0; i<4; i++) {
+		if(buf[i] != bmfs_magic[i]) {
+			bmfs_magic_nok = 1;
+			break;
+		}
+	}
+	if(bmfs_magic_nok) 
+		printf("%17s: %s\n", "Backup boot.bin", "Missing");
+	else 
+		printf("%17s: %s\n", "Backup boot.bin", "Present");
+	
 	mk_string(buf, xbfs_header->update_uuid, 16, 1);
 	printf("%17s: %s\n", "Update UUID?", buf);
 
@@ -288,12 +312,18 @@ int xbfs_info(XBFS_Header *xbfs_header, FILE *fin, args_t *opts, int save) {
 	for(int i=0; i<NUM_FILES; i++) {
 		if(cur_file->size > 0) {
 			uint64_t offset = real_offset(cur_file->offset);
-			printf("[%2d] %15s %8s: 0x%08" PRIX64 " %6s: 0x%04" PRIX32 " %6s: 0x%" PRIX64 "\n", j, filename_from_index(j), "Offset", offset & 0xffffffff, "Size", cur_file->size, "Unkn:", cur_file->unknown);
+			printf("[%2d] %15s %8s: 0x%08" PRIX64 " %6s: 0x%04" PRIX32 " %6s: 0x%" PRIX64 "\n", j, filename_from_index(j), "Offset", offset & 0xffffffff, "Size", cur_file->size, "Unkn", cur_file->unknown);
 			if(save != 0)
 				save_file(fin, offset, cur_file->size, j, opts->e_val);
 		}
 		j++;
 		cur_file+=1;
+	}
+	// save backup boot.bin (if present)
+	if(!bmfs_magic_nok) {
+		printf("[%2s] %15s %8s: 0x%08" PRIX64 " %6s: 0x%04" PRIX32 " %6s: %s\n", "--", filename_from_index(BOOT_BAK_INDEX), "Offset", BOOT_BAK_OFFSET & 0xffffffff, "Size", BOOT_BAK_SIZE, "Unkn", "---");
+		if(save != 0)
+			save_file(fin, BOOT_BAK_OFFSET, BOOT_BAK_SIZE, BOOT_BAK_INDEX, opts->e_val);
 	}
 	printf("\n");
 

@@ -10,8 +10,9 @@
 #define NUM_FILES	58
 #define NUM_KNOWN_FILES 	34
 
-#define BOOT_BAK_OFFSET (uint64_t) 0x1800C000
-#define BOOT_BAK_SIZE 0x2700   // * PAGE_SIZE
+// #define BOOT_BAK_OFFSET (uint64_t) 0x1800C000
+#define BOOT_BAK_OFFSET (uint64_t) 0x4000
+#define BOOT_BAK_SIZE (uint32_t) 0x2700   // * PAGE_SIZE
 #define BOOT_BAK_INDEX 99
 #define BOOT_BAK "boot.bak"
 
@@ -19,6 +20,7 @@
 
 extern char *xbfs_filenames[];
 extern uint8_t xbfs_magic[];
+extern uint8_t bmfs_magic[];
 
 extern uint32_t xbfs_offset;
 
