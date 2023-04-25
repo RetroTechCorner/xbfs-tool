@@ -10,7 +10,9 @@
 #define NUM_FILES	58
 #define NUM_KNOWN_FILES 	34
 
-// #define BOOT_BAK_OFFSET (uint64_t) 0x1800C000
+// there is a hidden boot backup in XBFS partition 
+// that is not part of XBFS file system (ie. not listed in header)
+// it seems it's a boot.bin of previously installed version/update
 #define BOOT_BAK_OFFSET (uint64_t) 0x4000
 #define BOOT_BAK_SIZE (uint32_t) 0x2700   // * PAGE_SIZE
 #define BOOT_BAK_INDEX 99
