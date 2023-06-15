@@ -48,3 +48,11 @@ int mk_string(char *buf, uint8_t *input, uint8_t size, uint8_t hex) {
 	return 0;
 }
 
+int mk_printf(char *buf, uint8_t *input, uint8_t size) {
+    memset(buf, '\0', size);
+    for (int i=0; i<size; i++) {
+        buf[i] = *input;
+        input += 2;
+    }
+    return 0;
+}

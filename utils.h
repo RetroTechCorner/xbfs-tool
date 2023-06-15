@@ -18,5 +18,6 @@ typedef struct {
 
 int usage(args_t *);
 int mk_string(char *buf, uint8_t *input, uint8_t size, uint8_t hex); 
+int mk_printf(char *buf, uint8_t *input, uint8_t size);
 
 #endif

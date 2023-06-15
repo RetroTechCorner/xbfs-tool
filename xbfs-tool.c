@@ -58,6 +58,8 @@ uint8_t bmfs_magic[] = {
 	'B', 'M', 'F', 'S'
 };
 
+static char asterisk[] = " ";
+
 static uint8_t read_buf[4096];
 
 
@@ -90,12 +92,6 @@ int main(int argc, char *argv[]) {
 	int u = usage(&args);
 	if(u != 0)
 		return 1;
-
-//   printf ("aflag = %d, bflag = %d, cvalue = %s\n",
-//           aflag, bflag, cvalue);
-
-//   for (index = optind; index < argc; index++)
-//     printf ("Non-option argument %s\n", argv[index]);
 
 	XBFS_Header xbfs_header;
 	FILE *fin;
@@ -309,10 +305,18 @@ int xbfs_info(XBFS_Header *xbfs_header, FILE *fin, args_t *opts, int save) {
 	// iterate through files
 	XBFS_File_Entry *cur_file = &(xbfs_header->file_entry_table[0]);
 	uint16_t j = 0;
+	uint64_t boot_bak_offset = BOOT_BAK_OFFSET;
+
 	for(int i=0; i<NUM_FILES; i++) {
 		if(cur_file->size > 0) {
 			uint64_t offset = real_offset(cur_file->offset);
-			printf("[%2d] %15s %8s: 0x%08" PRIX64 " %6s: 0x%04" PRIX32 " %6s: 0x%" PRIX64 "\n", j, filename_from_index(j), "Offset", offset & 0xffffffff, "Size", cur_file->size, "Unkn", cur_file->unknown);
+			// make an exception for "unusual" boot.bin
+			if(i == BOOT_BIN_INDEX) {		// boot.bin 
+				if(offset == 0x4000) {
+					boot_bak_offset = BOOT_BIN_OFFSET;
+				}
+			}
+			printf("[%2d] %15s %1s %8s: 0x%08" PRIX64 " %6s: 0x%04" PRIX32 " %6s: 0x%" PRIX64 "\n", j, filename_from_index(j), asterisk, "Offset", offset & 0xffffffff, "Size", cur_file->size, "Unkn", cur_file->unknown);
 			if(save != 0)
 				save_file(fin, offset, cur_file->size, j, opts->e_val);
 		}
@@ -321,11 +325,48 @@ int xbfs_info(XBFS_Header *xbfs_header, FILE *fin, args_t *opts, int save) {
 	}
 	// save backup boot.bin (if present)
 	if(!bmfs_magic_nok) {
-		printf("[%2s] %15s %8s: 0x%08" PRIX64 " %6s: 0x%04" PRIX32 " %6s: %s\n", "--", filename_from_index(BOOT_BAK_INDEX), "Offset", BOOT_BAK_OFFSET & 0xffffffff, "Size", BOOT_BAK_SIZE, "Unkn", "---");
+		if(boot_bak_offset == BOOT_BIN_OFFSET) 
+			asterisk[0] = '*';
+		printf("[%2s] %15s %1s %8s: 0x%08" PRIX64 " %6s: 0x%04" PRIX32 " %6s: %s\n", "--", filename_from_index(BOOT_BAK_INDEX), asterisk, "Offset", boot_bak_offset & 0xffffffff, "Size", BOOT_BAK_SIZE, "Unkn", "---");
 		if(save != 0)
-			save_file(fin, BOOT_BAK_OFFSET, BOOT_BAK_SIZE, BOOT_BAK_INDEX, opts->e_val);
+			save_file(fin, boot_bak_offset, BOOT_BAK_SIZE, BOOT_BAK_INDEX, opts->e_val);
 	}
 	printf("\n");
+
+
+	// print console info: "sp_s.cfg", file# 10,
+	printf(" === Console info ===\n");	
+	SP_S_Header sp_s_header;
+	cur_file = &(xbfs_header->file_entry_table[SP_S_CFG_INDEX]);
+	uint64_t offset = real_offset(cur_file->offset);
+	fseek(fin, offset + SP_S_CFG_OFFSET, SEEK_SET);
+	fread(&sp_s_header, sizeof(sp_s_header), 1, fin);
+	mk_string(buf, sp_s_header.serial, sizeof(sp_s_header.serial), 0);
+	printf("%15s: %s\n", "Serial number", buf);
+	mk_string(buf, sp_s_header.board_version, sizeof(sp_s_header.board_version), 0);
+	printf("%15s: %s\n", "Board version", buf);
+	mk_string(buf, sp_s_header.sb_mobo_number, sizeof(sp_s_header.sb_mobo_number), 0);
+	printf("%15s: %s\n", "SB Mobo version (?)", buf);
+	mk_string(buf, sp_s_header.sb_mobo_type, sizeof(sp_s_header.sb_mobo_type), 0);
+	printf("%15s: %s\n", "SB Mobo type (?)", buf);
+	mk_string(buf, sp_s_header.br_drive, sizeof(sp_s_header.br_drive), 0);
+	printf("%15s: %s\n", "Optical Drive", buf);
+	printf("\n");
+	// print update info: "update.cfg", file# 22
+	// get update.cfg offset
+	printf(" === Update info ===\n");	
+
+	Update_Header update_header;
+	cur_file = &(xbfs_header->file_entry_table[UPDATE_CFG_INDEX]);
+	offset = real_offset(cur_file->offset);
+	fseek(fin, offset, SEEK_SET);
+	fread(&update_header, sizeof(update_header), 1, fin);
+	mk_printf(buf, update_header.prev_update, sizeof(update_header.prev_update));
+	printf("%15s: %s\n", "Previous update", buf);
+	mk_printf(buf, update_header.cur_update, sizeof(update_header.cur_update));
+	printf("%15s: %s\n", "Current update", buf);
+	mk_printf(buf, update_header.os, sizeof(update_header.os));
+	printf("%15s: %s\n", "OS (?)", buf);
 
 	return 0;
 }
