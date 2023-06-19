@@ -50,7 +50,7 @@ int mk_string(char *buf, uint8_t *input, uint8_t size, uint8_t hex) {
 
 int mk_printf(char *buf, uint8_t *input, uint8_t size) {
     memset(buf, '\0', size);
-    for (int i=0; i<size; i++) {
+    for (int i=0; i<size/2; i++) {
         buf[i] = *input;
         input += 2;
     }

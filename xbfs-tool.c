@@ -342,15 +342,15 @@ int xbfs_info(XBFS_Header *xbfs_header, FILE *fin, args_t *opts, int save) {
 	fseek(fin, offset + SP_S_CFG_OFFSET, SEEK_SET);
 	fread(&sp_s_header, sizeof(sp_s_header), 1, fin);
 	mk_string(buf, sp_s_header.serial, sizeof(sp_s_header.serial), 0);
-	printf("%15s: %s\n", "Serial number", buf);
+	printf("%18s: %s\n", "Serial number", buf);
 	mk_string(buf, sp_s_header.board_version, sizeof(sp_s_header.board_version), 0);
-	printf("%15s: %s\n", "Board version", buf);
+	printf("%18s: %s\n", "Console P/N", buf);
 	mk_string(buf, sp_s_header.sb_mobo_number, sizeof(sp_s_header.sb_mobo_number), 0);
-	printf("%15s: %s\n", "SB Mobo version (?)", buf);
+	printf("%18s: %s\n", "Motherboard serial", buf);
 	mk_string(buf, sp_s_header.sb_mobo_type, sizeof(sp_s_header.sb_mobo_type), 0);
-	printf("%15s: %s\n", "SB Mobo type (?)", buf);
+	printf("%18s: %s\n", "Motherboard model", buf);
 	mk_string(buf, sp_s_header.br_drive, sizeof(sp_s_header.br_drive), 0);
-	printf("%15s: %s\n", "Optical Drive", buf);
+	printf("%18s: %s\n", "Optical Drive", buf);
 	printf("\n");
 	// print update info: "update.cfg", file# 22
 	// get update.cfg offset
@@ -361,12 +361,12 @@ int xbfs_info(XBFS_Header *xbfs_header, FILE *fin, args_t *opts, int save) {
 	offset = real_offset(cur_file->offset);
 	fseek(fin, offset, SEEK_SET);
 	fread(&update_header, sizeof(update_header), 1, fin);
-	mk_printf(buf, update_header.prev_update, sizeof(update_header.prev_update));
-	printf("%15s: %s\n", "Previous update", buf);
-	mk_printf(buf, update_header.cur_update, sizeof(update_header.cur_update));
-	printf("%15s: %s\n", "Current update", buf);
-	mk_printf(buf, update_header.os, sizeof(update_header.os));
-	printf("%15s: %s\n", "OS (?)", buf);
+	mk_printf(buf, update_header.cur_osu, sizeof(update_header.cur_osu));
+	printf("%12s: %s\n", "Current OS", buf);
+	mk_printf(buf, update_header.prev_osu, sizeof(update_header.prev_osu));
+	printf("%12s: %s\n", "Previous OS", buf);
+	mk_printf(buf, update_header.prev_osu_version, sizeof(update_header.prev_osu_version));
+	printf("%12s: %s\n", "(subver)", buf);
 
 	return 0;
 }

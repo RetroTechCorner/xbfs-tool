@@ -61,9 +61,9 @@ typedef struct {
 
 typedef struct {
 	uint8_t		unknown[50];
-	uint8_t		prev_update[176];
-	uint8_t 	cur_update[176];
-	uint8_t		os[134];
+	uint8_t		prev_osu[176];
+	uint8_t 	cur_osu[176];
+	uint8_t		prev_osu_version[134];
 } Update_Header;
 
 typedef struct {
